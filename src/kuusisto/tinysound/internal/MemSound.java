@@ -27,6 +27,11 @@
 package kuusisto.tinysound.internal;
 
 import kuusisto.tinysound.Sound;
+import kuusisto.tinysound.SoundFilter;
+
+import java.util.Arrays;
+
+import static java.util.Arrays.copyOf;
 
 /**
  * The MemSound class is an implementation of the Sound interface that stores
@@ -61,7 +66,7 @@ public class MemSound implements Sound {
 	 */
 	@Override
 	public void play() {
-		this.play(1.0);
+		this.play(1.0, 0.0, null);
 	}
 	
 	/**
@@ -70,8 +75,53 @@ public class MemSound implements Sound {
 	 */
 	@Override
 	public void play(double volume) {
-		this.play(volume, 0.0);
+		this.play(volume, 0.0, null);
 	}
+
+	/**
+	 * Plays this Sound with a specified filter.
+	 * @param filter the filter used on the sound
+	 */
+    @Override
+	public void play(SoundFilter filter) {
+        this.play(1.0, 0.0, filter);
+    }
+
+	/**
+	 * Plays this Sound with a specified volume and filter.
+	 * @param volume the volume at which to play this Sound
+	 * @param filter the filter used on the sound
+	 */
+    @Override
+	public void play(double volume, SoundFilter filter) {
+        this.play(volume, 0.0, filter);
+    }
+
+	/**
+	 * Plays this Sound with a specified volume, pan and filter.
+	 * @param volume the volume at which to play this Sound
+	 * @param pan the pan value to play this Sound [-1.0,1.0], values outside
+	 * @param filter the filter used on the sound
+	 */
+    @Override
+	public void play(double volume, double pan, SoundFilter soundFilter) {
+        //dispatch a sound refence to the mixer
+        SoundReference ref;
+        if (soundFilter != null) {
+            byte[] leftCopy = copyOf(this.left, this.left.length);
+            byte[] rightCopy = copyOf(this.right, this.right.length);
+
+            soundFilter.filter(leftCopy);
+            soundFilter.reset();
+            soundFilter.filter(rightCopy);
+            soundFilter.reset();
+
+            ref = new MemSoundReference(leftCopy, rightCopy, volume, pan, this.ID);
+        } else {
+            ref = new MemSoundReference(this.left, this.right, volume, pan, this.ID);
+        }
+        this.mixer.registerSoundReference(ref);
+    }
 
 	/**
 	 * Plays this MemSound with a specified volume and pan.
@@ -81,10 +131,7 @@ public class MemSound implements Sound {
 	 */
 	@Override
 	public void play(double volume, double pan) {
-		//dispatch a sound refence to the mixer
-		SoundReference ref = new MemSoundReference(this.left, this.right,
-				volume, pan, this.ID);
-		this.mixer.registerSoundReference(ref);
+	    this.play(volume, pan, null);
 	}
 	
 	/**

@@ -26,11 +26,12 @@
  */
 package kuusisto.tinysound.internal;
 
+import kuusisto.tinysound.Sound;
+import kuusisto.tinysound.SoundFilter;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-
-import kuusisto.tinysound.Sound;
 
 /**
  * Thes StreamSound class is an implementation of the Sound interface that
@@ -71,7 +72,7 @@ public class StreamSound implements Sound {
 	 */
 	@Override
 	public void play() {
-		this.play(1.0);
+		this.play(1.0, 0.0, null);
 	}
 
 	/**
@@ -80,7 +81,51 @@ public class StreamSound implements Sound {
 	 */
 	@Override
 	public void play(double volume) {
-		this.play(volume, 0.0);
+		this.play(volume, 0.0, null);
+	}
+
+	/**
+	 * Plays this Sound with a specified filter.
+	 * @param filter the filter used on the sound
+	 */
+	@Override
+	public void play(SoundFilter filter) {
+		this.play(1.0, 0.0, filter);
+	}
+
+	/**
+	 * Plays this Sound with a specified volume and filter.
+	 * @param volume the volume at which to play this Sound
+	 * @param filter the filter used on the sound
+	 */
+	@Override
+	public void play(double volume, SoundFilter filter) {
+		this.play(volume, 0.0, filter);
+	}
+
+	/**
+	 * Plays this Sound with a specified volume, pan and filter.
+	 * @param volume the volume at which to play this Sound
+	 * @param pan the pan value to play this Sound [-1.0,1.0], values outside
+	 * @param filter the filter used on the sound
+	 */
+	@Override
+	public void play(double volume, double pan, SoundFilter soundFilter) {
+        //dispatch a SoundReference to the mixer
+        SoundReference ref;
+        try {
+            InputStream stream;
+            if (soundFilter != null) {
+                stream = new FilteredSoundStream(this.dataURL.openStream(), soundFilter);
+            } else {
+                stream = this.dataURL.openStream();
+            }
+
+            ref = new StreamSoundReference(stream, this.numBytesPerChannel, volume, pan, this.ID);
+            this.mixer.registerSoundReference(ref);
+        } catch (IOException e) {
+            System.err.println("Failed to open stream for Sound");
+        }
 	}
 
 	/**
@@ -91,15 +136,7 @@ public class StreamSound implements Sound {
 	 */
 	@Override
 	public void play(double volume, double pan) {
-		//dispatch a SoundReference to the mixer
-		SoundReference ref;
-		try {
-			ref = new StreamSoundReference(this.dataURL.openStream(),
-					this.numBytesPerChannel, volume, pan, this.ID);
-			this.mixer.registerSoundReference(ref);
-		} catch (IOException e) {
-			System.err.println("Failed to open stream for Sound");
-		}
+	    this.play(volume, pan, null);
 	}
 
 	/**

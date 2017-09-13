@@ -45,6 +45,27 @@ public interface Sound {
 	 * @param volume the volume at which to play this Sound
 	 */
 	public void play(double volume);
+
+	/**
+	 * Plays this Sound with a specified filter.
+	 * @param filter the filter used on the sound
+	 */
+	public void play(SoundFilter filter);
+
+	/**
+	 * Plays this Sound with a specified volume and filter.
+	 * @param volume the volume at which to play this Sound
+	 * @param filter the filter used on the sound
+	 */
+	public void play(double volume, SoundFilter filter);
+
+	/**
+	 * Plays this Sound with a specified volume, pan and filter.
+	 * @param volume the volume at which to play this Sound
+	 * @param pan the pan value to play this Sound [-1.0,1.0], values outside
+	 * @param filter the filter used on the sound
+	 */
+	public void play(double volume, double pan, SoundFilter filter);
 	
 	/**
 	 * Plays this Sound with a specified volume and pan.
